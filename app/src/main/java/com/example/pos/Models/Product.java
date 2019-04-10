@@ -1,6 +1,8 @@
 package com.example.pos.Models;
 
-public class Product {
+import java.io.Serializable;
+
+public class Product implements Serializable {
     private String $id;
     private int ProductId;
     private String Name;
@@ -53,5 +55,16 @@ public class Product {
 
     public void setType(String type) {
         Type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "$id='" + $id + '\'' +
+                ", ProductId=" + ProductId +
+                ", Name='" + Name + '\'' +
+                ", Price=" + Price +
+                ", Type='" + Type + '\'' +
+                '}';
     }
 }

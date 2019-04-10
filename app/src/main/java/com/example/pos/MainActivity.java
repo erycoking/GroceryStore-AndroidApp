@@ -1,10 +1,22 @@
 package com.example.pos;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import com.androidnetworking.interceptors.HttpLoggingInterceptor;
+import com.example.pos.Models.ProductType;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.RecyclerView;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -13,29 +25,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
-
-import com.androidnetworking.AndroidNetworking;
-import com.androidnetworking.common.Priority;
-import com.androidnetworking.error.ANError;
-import com.androidnetworking.interceptors.HttpLoggingInterceptor;
-import com.androidnetworking.interfaces.JSONArrayRequestListener;
-import com.example.pos.Models.Product;
-import com.example.pos.Models.ProductType;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import org.json.JSONArray;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,13 +37,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Log.d(TAG, "onCreate: initializing android-networking library");
-//        AndroidNetworking.initialize(getApplicationContext());
-//        AndroidNetworking.enableLogging(HttpLoggingInterceptor.Level.HEADERS);
-
-
-
         Log.d(TAG, "onCreate: initializing the UI");
         init();
     }
@@ -74,14 +56,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void loadFoodTypes(){
         Log.d(TAG, "loadFoodTypes: loading product types");
-        String url = "http://192.168.77.84:3000/api/producttypes";
-        String baseUrl = "http://192.168.77.84:3000";
+        String baseUrl = "http://10.0.2.2:3000/";
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(true)
+                .connectTimeout(5000, TimeUnit.SECONDS)
                 .addInterceptor(logging)
                 .addNetworkInterceptor(new Interceptor() {
                     @Override
@@ -92,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .build();
 
-       /* Retrofit retrofit = new Retrofit.Builder()
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create()).build();
@@ -105,16 +87,21 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<ArrayList<ProductType>> call, Response<ArrayList<ProductType>> response) {
                 if(response.isSuccessful()){
                     System.out.println("erycoking");
-                    System.out.println(response.body());
-                    List<ProductType> productTypes = response.body();
+                    final ArrayList<ProductType> productTypes = new ArrayList<>();
+                    productTypes.addAll(response.body());
+                    System.out.println(productTypes);
 
                     for(ProductType type1: productTypes){
+                        System.out.println(type1);
                         productTypeNames.add(type1.getName());
                     }
+
+                    System.out.println(productTypeNames);
+                    getIntent().putExtra("productTypeNames", productTypeNames);
+                    initializeFragment();
+                }else{
+                    Log.d(TAG, "onResponse: "+response.errorBody().toString());
                 }
-
-                Log.d(TAG, "onResponse: "+response.errorBody().toString());
-
             }
 
             @Override
@@ -122,42 +109,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "onFailure: "+t.getMessage());
                 Toast.makeText(MainActivity.this, "failed to load Product types. try again later", Toast.LENGTH_SHORT).show();
             }
-        });*/
+        });
 
-        AndroidNetworking.get(url)
-                .addHeaders("content-type", "application/json")
-                .setOkHttpClient(okHttpClient)
-                .setPriority(Priority.LOW)
-                .build()
-                .getAsJSONArray(new JSONArrayRequestListener() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        System.out.println(response.toString());
-                        Type type = new TypeToken<ArrayList<ProductType>>(){}.getType();
-                        ArrayList<ProductType> mProductTypes = new Gson().fromJson(response.toString(), type);
-                        for(ProductType type1: mProductTypes){
-                            productTypeNames.add(type1.getName());
-                        }
-                        System.out.println("erycoking");
-
-                    }
-
-                    @Override
-                    public void onError(ANError anError) {
-                        System.out.println(anError.getMessage());
-
-                        if (anError.getErrorCode() != 0){
-                            Log.d(TAG, "onError errorCode : " + anError.getErrorCode());
-                            Log.d(TAG, "onError errorBody : " + anError.getErrorBody());
-                            Log.d(TAG, "onError errorDetail : " + anError.getErrorDetail());
-                        }
-
-                        Toast.makeText(MainActivity.this, "failed to load Product types. try again later", Toast.LENGTH_SHORT).show();
-                    }
-                });
-        System.out.println(productTypeNames);
-        getIntent().putExtra("productTypeNames", productTypeNames);
-        initializeFragment();
     }
 
     private void initializeFragment() {
@@ -165,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         Fragment fragment;
 
         fragment = new FoodTypeFragment();
-        FragmentManager manager = getSupportFragmentManager();
+        FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.replace(R.id.foodTypeFragment, fragment);
         transaction.commit();

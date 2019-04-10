@@ -7,13 +7,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.androidnetworking.AndroidNetworking;
 import com.example.pos.Models.Product;
 
 import java.util.ArrayList;
 
-public class product_activity extends AppCompatActivity {
-    private static final String TAG = "product_activity";
+public class ProductActivity extends AppCompatActivity {
+    private static final String TAG = "ProductActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,9 +27,9 @@ public class product_activity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             //The key argument here must match that used in the other activity
-            ArrayList<Product> products = (ArrayList<Product>) extras.get("products");
+            ArrayList<Product> products = (ArrayList<Product>) extras.getSerializable("products");
 
-            Log.d(TAG, "init: recycler view");
+            Log.d(TAG, "init: recycler view " + products);
             RecyclerView recyclerView = findViewById(R.id.product_recycler_view);
             ProductRecyclerViewAdapter adapter = new ProductRecyclerViewAdapter(products, this);
             recyclerView.setAdapter(adapter);

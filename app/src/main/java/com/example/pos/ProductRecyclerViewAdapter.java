@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.example.pos.Models.Product;
@@ -22,7 +23,7 @@ public class ProductRecyclerViewAdapter extends RecyclerView.Adapter<ProductRecy
     Context mContext;
 
     public ProductRecyclerViewAdapter(ArrayList<Product> products, Context mContext) {
-        this.products = products;
+        this.products.addAll(products);
         this.mContext = mContext;
     }
 
@@ -36,16 +37,11 @@ public class ProductRecyclerViewAdapter extends RecyclerView.Adapter<ProductRecy
 
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
-        Product pr = products.get(position);
-        String item_desc = pr.getName() + " @ " +pr.getPrice();
-        holder.product_btn.setText(item_desc);
-
-        final String clicked_on = "You clicked on " + item_desc;
-
-        holder.product_layout.setOnClickListener(new View.OnClickListener() {
+        holder.product_btn.setText(products.get(position).getName() + " @ " + products.get(position).getPrice());
+        holder.product_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(mContext, clicked_on, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, ((Button)v).getText().toString(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -58,7 +54,7 @@ public class ProductRecyclerViewAdapter extends RecyclerView.Adapter<ProductRecy
     public class ProductViewHolder extends RecyclerView.ViewHolder{
 
         Button product_btn;
-        LinearLayout product_layout;
+        RelativeLayout product_layout;
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
 

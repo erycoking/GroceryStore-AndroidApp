@@ -34,4 +34,13 @@ public class ProductType {
     public void setName(String name) {
         Name = name;
     }
+
+    @Override
+    public String toString() {
+        return "ProductType{" +
+                "$id='" + $id + '\'' +
+                ", ProductTypeId=" + ProductTypeId +
+                ", Name='" + Name + '\'' +
+                '}';
+    }
 }
